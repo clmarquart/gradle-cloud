@@ -1,0 +1,44 @@
+apply {
+  plugin 'groovy'
+}
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  groovy 'org.codehaus.groovy:groovy:1.8.6'
+  
+  compile 'org.slf4j:slf4j-simple:1.6.4'
+  compile 'org.codehaus.groovy.modules.http-builder:http-builder:0.5.2'
+  
+  testCompile 'junit:junit:4.10'
+}
+
+sourceSets {
+  main {
+    groovy { srcDir 'src' }
+    resources { srcDir 'resources' }
+  }
+  
+  test {
+    groovy { srcDir 'test' }
+    resources { srcDir 'test-resources' }
+  }
+}
+
+test {
+  println "test"
+  testLogging.showStandardStreams = true
+  
+  beforeTest { descriptor ->
+      logger.lifecycle("Running test: " + descriptor)
+  }
+  onOutput { descriptor, event ->
+     logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message )
+  }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.0-milestone-8'
+}

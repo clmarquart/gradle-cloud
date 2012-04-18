@@ -1,0 +1,47 @@
+apply {
+	plugin 'groovy'
+}
+
+sourceCompatibility = 1.6
+
+logger.quiet "Building the Gradle Cloud Plugin"
+
+group = 'gripes'
+archivesBaseName = 'gradle-cloud'
+version = '0.1.0'
+
+repositories {
+    mavenCentral()
+}
+
+sourceSets {
+	main {
+		groovy { srcDir 'src/main/groovy' }
+	  resources { srcDir 'src/main/resources' }
+	}	
+}
+
+configurations {
+	provided {}
+}
+
+dependencies {	
+	//** Gradle API
+	compile gradleApi()
+    
+	//** Groovy
+	groovy 'org.codehaus.groovy:groovy:1.8.6'
+  
+  compile 'org.slf4j:slf4j-simple:1.6.4'
+  compile 'org.codehaus.groovy.modules.http-builder:http-builder:0.5.2'
+/*  compile 'net.sf.json-lib:json-lib:2.4'*/
+  compile 'net.schmizz:sshj:0.7.0'
+  
+  testCompile 'junit:junit:4.10'
+}
+
+test {
+  ["rackspaceUser","rackspaceAPI","rackspaceServer","rackspaceServerUser","rackspaceServerPassword"].each {
+    systemProperty it, System.getProperty(it)
+  }
+} 
