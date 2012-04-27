@@ -1,0 +1,27 @@
+#!/usr/bin/expect
+set olddir [pwd]
+puts "$olddir\n"
+
+set timeout 20
+
+cd ~/.ssh
+set homedir [pwd]
+puts $homedir
+
+set dsaExists [file exists id_dsa.pub]
+if {$dsaExists == 0} {
+    puts "RSA identity doesn't exist. Creating it now...\n"
+    exec ssh-keygen -t dsa -f id_dsa -N ""
+} else {
+    puts "RSA identity exists\n"
+}
+
+
+spawn ssh-copy-id -i "$homedir/id_dsa.pub" [USER]@50.56.182.9
+expect "password:"
+if { [catch {send "[PASSWORD]\n";} fid] } { 
+    puts "Failed to updated `authorized_keys`.  It may already exist."
+    exit 1
+} else {
+    interact
+}

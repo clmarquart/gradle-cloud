@@ -35,7 +35,7 @@ dependencies {
   compile 'org.slf4j:slf4j-simple:1.6.4'
   compile 'org.codehaus.groovy.modules.http-builder:http-builder:0.5.2'
 /*  compile 'net.sf.json-lib:json-lib:2.4'*/
-  compile 'net.schmizz:sshj:0.7.0'
+  compile 'org.apache.ant:ant-jsch:1.8.3'
   
   testCompile 'junit:junit:4.10'
 }

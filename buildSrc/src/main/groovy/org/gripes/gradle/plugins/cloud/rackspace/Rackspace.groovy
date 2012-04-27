@@ -9,17 +9,10 @@ import groovyx.net.http.*
 
 import java.util.concurrent.*
 
-import net.schmizz.sshj.SSHClient
-import net.schmizz.sshj.common.IOUtils
-import net.schmizz.sshj.connection.channel.direct.Session
-import net.schmizz.sshj.connection.channel.direct.Session.Command
-import net.schmizz.sshj.xfer.scp.SCPFileTransfer
-
 class Rackspace implements CloudService {
   String base
   String path
   
-  SSHClient ssh = new SSHClient()
   Map connection = [:]
   
   String serviceBase
@@ -69,49 +62,4 @@ class Rackspace implements CloudService {
     })
     foundImage?:null
   } 
-  
-  /**
-   * 
-   */
-  def runCommand(String cmdStr) { 
-    Session session
-    Command cmd
-         
-    try {
-      session = ssh.startSession();
-      cmd = session.exec(cmdStr);
-//        cmd = session.exec("apt-get -y install puppet")
-      println(IOUtils.readFully(cmd.getInputStream()).toString());
-      cmd.join(5, TimeUnit.SECONDS);
-      println("\n** exit status: " + cmd.getExitStatus());
-    } catch (e) {  
-      e.printStackTrace()
-      session.close()
-    } 
-  }
-  
-  def transfer(src, dest) {
-    SCPFileTransfer tfr
-    tfr = ssh.newSCPFileTransfer()
-    tfr.upload(src, dest)
-  }
-  
-  void connectSSH() {
-    try {
-      ssh.loadKnownHosts();
-      ssh.connect(connection['ip']);
-  
-      try {
-        ssh.authPassword(connection['user'], connection['password'])
-      } catch (e) {  
-        e.printStackTrace()
-      }
-    } catch (e) {
-      e.printStackTrace()
-    }
-  }
-  
-  void disconnectSSH() {
-    ssh.disconnect()
-  }  
 }
