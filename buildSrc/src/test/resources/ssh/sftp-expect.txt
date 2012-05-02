@@ -17,7 +17,7 @@ if {$dsaExists == 0} {
 }
 
 
-spawn ssh-copy-id -i "$homedir/id_dsa.pub" [USER]@50.56.182.9
+spawn ssh-copy-id -i "$homedir/id_dsa.pub" [USER]@[IP]
 expect "password:"
 if { [catch {send "[PASSWORD]\n";} fid] } { 
     puts "Failed to updated `authorized_keys`.  It may already exist."

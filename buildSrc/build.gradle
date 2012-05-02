@@ -41,7 +41,11 @@ dependencies {
 }
 
 test {
-  ["rackspaceUser","rackspaceAPI","rackspaceServer","rackspaceServerUser","rackspaceServerPassword"].each {
+//  forkEvery = 1
+  [
+    "rackspaceUser","rackspaceAPI","rackspaceServer","rackspaceServerUser","rackspaceServerPassword",
+    "rackspaceServerIP"
+  ].each {
     systemProperty it, System.getProperty(it)
   }
 } 
