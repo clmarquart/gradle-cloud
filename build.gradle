@@ -1,5 +1,6 @@
 apply {
   plugin 'groovy'
+  plugin 'cloud'
 }
 
 repositories {
@@ -28,7 +29,6 @@ sourceSets {
 }
 
 test {
-  println "test"
   testLogging.showStandardStreams = true
   
   beforeTest { descriptor ->
@@ -39,6 +39,10 @@ test {
   }
 }
 
+cloud {
+  provider = "rackspace"
+}
+
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.0-milestone-8'
+    gradleVersion = '1.0-rc-2'
 }

@@ -10,14 +10,12 @@ import org.slf4j.LoggerFactory
 class TestRackspaceAuthentication extends BaseRackspaceTestCase {
   static Logger log = LoggerFactory.getLogger(TestRackspaceAuthentication.class)
   
-  @Ignore
   @Test void testGetServerList() {
     rackspace.service('/servers', { resp, json ->
       assert json.servers.size() > 0
     })
   }
   
-  @Ignore
   @Test void testServersAreActive() {
     rackspace.service('/servers', { resp, json -> 
       json.servers.each {

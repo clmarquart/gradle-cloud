@@ -1,6 +1,5 @@
 package org.gripes.gradle.plugins.cloud.rackspace
 
-import groovyx.net.http.HTTPBuilder
 import static groovyx.net.http.ContentType.*
 import static groovyx.net.http.Method.*
 
@@ -31,20 +30,41 @@ class Rackspace implements CloudService {
     }
   }
   
-  def service(String servicePath, Closure success) {
-    println "PATH: " + serviceBase+servicePath
-    def serverHTTP = new HTTPBuilder(serviceBase+servicePath)
-    serverHTTP.get([headers: ['X-Auth-Token' : authToken]], success)
+  /**
+   * Just calls {service(String, Closure)}, used for better
+   * readibility of the service calls.
+   *
+   * @param servicePath - String service to call from Rackspace
+   * @param success - Closure to call upon successful API call
+   */
+  def get(String servicePath, Closure success) {
+    service(servicePath, success)
   }
   
-  def service(String servicePath, Map params, Closure success) {    
-/*    def serverHTTP = new HTTPBuilder("https://${(serviceBase+servicePath).toURI().host}")*/
-    println "PATH: " + serviceBase+servicePath
-    def serverHTTP = new HTTPBuilder(serviceBase+servicePath)
+  /**
+   * Performs a GET request and calls {success} when the API
+   * call is successful.
+   *
+   * @param servicePath - String service to call from Rackspace
+   * @param success - Closure to call upon successful API call
+   */
+  def service(String servicePath, Closure success) {
+    def serverHTTP = createHTTPBuilder(servicePath)
     
-    serverHTTP.headers = [
-      'X-Auth-Token' : authToken
-    ]
+    serverHTTP.request( GET, JSON ) { req ->
+      response.success = success
+    }
+  }
+  
+  /**
+   * Performs a POST request with {params} and calls {success} 
+   * when the API call is successful.
+   *
+   * @param servicePath - String service to call from Rackspace
+   * @param success - Closure to call upon successful API call
+   */
+  def service(String servicePath, Map params, Closure success) {
+    def serverHTTP = createHTTPBuilder(servicePath)
     
     serverHTTP.request( POST, JSON ) {
       uri.path = (serviceBase+servicePath).toURI().path
@@ -53,17 +73,56 @@ class Rackspace implements CloudService {
     }
   }
   
+  /**
+   * Create a new Rackspace server with the given params
+   *
+   * @param servicePath
+   * @param params
+   * @param success
+   */
+  def create(Map params, Closure success) {
+    service("/servers", params, { resp, json ->    
+      def newServer = json.server
+      
+      while(!isComplete(newServer.id)) {
+        Thread.sleep(30000);
+      }
+      
+      success.call(newServer)
+    })
+  }
+  
+  /**
+   * Delete a server as defined by servicePath
+   * 
+   * @param servicePath
+   * @param success
+   */
   def delete(String servicePath, Closure success) {
-    def serverHTTP = new HTTPBuilder(serviceBase+servicePath)
+    servicePath = '/servers/'+servicePath
     
-    serverHTTP.headers = [
-      'X-Auth-Token' : authToken
-    ]
-    
-    serverHTTP.request( DELETE, JSON ) {
+    def serverHTTP = createHTTPBuilder(servicePath)
+
+    serverHTTP.request( DELETE, JSON ) {      
       uri.path = (serviceBase+servicePath).toURI().path
-      response.success = success
+      
+      response.success = { resp, json ->
+        success.call(true)
+      }
+      response.'404' = { resp, json ->
+        success.call(false)
+      }
     }
+  }
+  
+  /**
+   * Delete a server as defined by servicePath
+   * 
+   * @param servicePath
+   * @param success
+   */
+  def delete(int servicePath, Closure success) {
+    delete(servicePath.toString(), success)
   }
   
   /**
@@ -94,11 +153,58 @@ class Rackspace implements CloudService {
    * @param img - String of the type of image to look for (i.e. Ubuntu)
    * @return image - JSON representation
    */
-  def findImage(String img) {
+  def findNewestImage(String img) {
     def foundImage
     service('/images', { resp, json ->
       foundImage = json.images.findAll{it.name.find("(?i)"+img)}.max{a,b->a.id<=>b.id}
     })
     foundImage?:null
+  }
+
+  /**
+   * Poll a server to determine if the server is built
+   * and active.
+   *
+   * @param newServer - String id of the server to check
+   * @return boolean - true if 'ACTIVE', false otherwise
+   */
+  public boolean isComplete(int newServer) {
+    def done = false;
+    service("/servers/${newServer}",{ resp, json ->
+      if(json.server.status == 'ACTIVE') {
+        done = true
+      }
+    })
+    return done;
+  }
+  
+  /**
+   * Find specific server by name
+   * 
+   * @param name - String server name
+   * @return JSON representation of server, or null if not found
+   */
+  public def findServer(String name) {
+    def server
+    service('/servers', { resp, json ->
+      server = json.servers.find { it.name == name }
+    })
+    server
+  }
+  
+  /**
+   * Helper method to construct the HTTPBuilder with
+   * the proper headers.
+   *
+   * @param servicePath
+   */
+  private createHTTPBuilder(servicePath) {
+    def serverHTTP = new HTTPBuilder(serviceBase+servicePath)
+
+    serverHTTP.headers = [
+      'X-Auth-Token' : authToken
+    ]
+
+    serverHTTP
   }
 }
