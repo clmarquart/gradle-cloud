@@ -3,6 +3,9 @@ apply {
   plugin 'war'
   plugin 'cloud'
 }
+
+archivesBaseName = "gradle-cloud"
+
 configurations {
   antSshTask {}
   antDeployTask {}

@@ -17,8 +17,8 @@ import java.util.concurrent.*
  * @author clmarquart
  */
 class Rackspace implements CloudService {
-  String base
-  String path
+  String base = 'http://auth.api.rackspacecloud.com'
+  String path = '/v1.0'
   
   Map connection = [:]
   

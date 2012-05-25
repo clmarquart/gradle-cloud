@@ -5,6 +5,7 @@ import static org.gripes.gradle.plugins.ssh.Service.*
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gripes.gradle.plugins.cloud.CloudService
+import org.gripes.gradle.plugins.cloud.Authentication
 import org.gripes.gradle.plugins.cloud.rackspace.Rackspace
 import org.gripes.gradle.plugins.cloud.rackspace.RackspaceAuthentication
 import org.gripes.gradle.plugins.puppet.Puppet
@@ -33,6 +34,11 @@ class CloudPlugin implements Plugin<Project> {
           classname: 'org.apache.catalina.ant.DeployTask',                    
           classpath: project.configurations.antDeployTask.asPath
         )
+        taskdef(
+          name: 'undeploy', 
+          classname: 'org.apache.catalina.ant.UndeployTask',                    
+          classpath: project.configurations.antDeployTask.asPath
+        )
       }
       
       /**
@@ -40,25 +46,38 @@ class CloudPlugin implements Plugin<Project> {
        * 2. Setup connection parameters
        * 3. Get authentication token
        */
+       
       // FIXME This needs to check {project.cloud.provider} to determine what to load
-      RackspaceAuthentication auth = new RackspaceAuthentication(user: System.getProperty("rackspaceUser"), key: System.getProperty("rackspaceAPI"))
-      Rackspace rackspace = new Rackspace(base: 'http://auth.api.rackspacecloud.com', path: '/v1.0', authentication: auth)
-      rackspace.connect()
+      ClassLoader classLoader = this.class.classLoader
+      String serviceString = "org.gripes.gradle.plugins.cloud.${project.cloud.provider}.${project.cloud.provider.capitalize()}"
+      String serviceAuthString = "org.gripes.gradle.plugins.cloud.${project.cloud.provider}.${project.cloud.provider.capitalize()}Authentication"
+      Class serviceClass = classLoader.loadClass(serviceString)
+      Class serviceAuthClass = classLoader.loadClass(serviceAuthString)
+      Object<? extends CloudService> service = serviceClass.newInstance()
+      Object<? extends Authentication> auth = serviceAuthClass.newInstance()
+            
+      auth.with {
+        user = System.getProperty('rackspaceUser')
+        key = System.getProperty('rackspaceAPI')
+      }
+      service.with {
+        base = project.cloud.base?:delegate.base
+        path = project.cloud.path?:delegate.path
+        authentication = auth
+        connect()
+      }     
       
       if(!project.cloud.serverID) {
-        ClassLoader classLoader = this.class.classLoader
-        String serviceString = "org.gripes.gradle.plugins.cloud.${project.cloud.provider}.${project.cloud.provider.capitalize()}"
-        Object<? extends CloudService> service = classLoader.loadClass(serviceString)
-
         println "Service: ${service}"
+        println "Newest ubuntu: " + service.findNewestImage(project.cloud.serverOS)
+        // Make a server and save it too project.cloud.serverID
         
-        println "Newest ubuntu: " + rackspace.findNewestImage("ubuntu")
-      }
+      } 
       
       println "Use server: ${project.cloud.serverID}"
 
       String ipAddress
-      rackspace.service("/servers/${project.cloud.serverID}", { resp2, json2 ->
+      service.service("/servers/${project.cloud.serverID}", { resp2, json2 ->
         ipAddress = json2.server.addresses.public[0]
         println "PUBLIC IP: " + ipAddress
         
@@ -86,13 +105,20 @@ class CloudPlugin implements Plugin<Project> {
         ssh.with {
           transfer("puppet/tomcat/conf/tomcat-users.xml", "/etc/tomcat6/")
           exec(TOMCAT.restart())
-          println "BUILD DIR :" + project.buildDir
         }
+        
+        ant.undeploy(url: "http://"+ipAddress+":8080/manager",
+          username: "tomcat", 
+          password: "t0mc@t",
+          failonerror: false,
+          path: "/${project.archivesBaseName}")
         ant.deploy(url: "http://"+ipAddress+":8080/manager",
           username: "tomcat", 
           password: "t0mc@t",
-          path: "/test",
-          war: project.buildDir.canonicalPath+"/libs/gradle-cloud.war")
+          path: "/${project.archivesBaseName}",
+          war: project.buildDir.canonicalPath+"/libs/${project.archivesBaseName}.war")
+          
+        println "Application deployed to: http://${ipAddress}:8080/${project.archivesBaseName}"
       })
     }
     deployTask.dependsOn<<project.war
