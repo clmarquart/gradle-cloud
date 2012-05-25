@@ -68,7 +68,7 @@ class TestRackspaceServerCreate extends BaseRackspaceTestCase {
   
   void testInstallPuppetTomcat(def newServer) {
     SSH ssh = new SSH()
-    
+    ssh.ant = new AntBuilder()
     ssh.connection = [
       ip : newServer.addresses.public[0],
       user : "root",

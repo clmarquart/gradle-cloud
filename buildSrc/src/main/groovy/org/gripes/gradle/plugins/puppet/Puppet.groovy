@@ -9,13 +9,13 @@ class Puppet {
   private static Logger logger = LoggerFactory.getLogger(Puppet.class)
   
   public Map connection = [:]
-  public SSH ssh = new SSH()
+  public SSH ssh //= new SSH()
   public String os
   
   /**
    * Location for all puppet files to be copied to and created in.
    *
-   * @todo This should probably be configurable at a high-level. (Within the build.gradle)
+   * @todo This should probably be configurable at a high-level. (i.e. Within the build.gradle)
    */
   public String workdir = "/root/gradle-cloud"
   
@@ -23,7 +23,6 @@ class Puppet {
    * Install puppet to the server represented in
    * connection
    *
-   * @todo This CANNOT be dependent on Ubuntu and apt-get
    * @return Puppet
    */
   public void install() {

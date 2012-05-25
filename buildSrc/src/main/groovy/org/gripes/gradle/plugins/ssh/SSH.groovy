@@ -1,8 +1,8 @@
 package org.gripes.gradle.plugins.ssh
 
 class SSH {
-  private def ant = new AntBuilder()
-  
+  public def ant //= new AntBuilder()
+  public def project
   public Map connection = [:]
   
   /**

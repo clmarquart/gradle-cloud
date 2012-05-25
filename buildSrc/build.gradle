@@ -1,6 +1,14 @@
 apply {
 	plugin 'groovy'
 }
+  buildscript {
+      repositories {
+          mavenCentral()
+      }
+      dependencies {
+          classpath 'org.apache.ant:ant-jsch:1.8.3'
+      }
+  }
 
 sourceCompatibility = 1.6
 
@@ -23,6 +31,7 @@ sourceSets {
 
 configurations {
 	provided {}
+  sshAntTask {}
 }
 
 dependencies {	
@@ -31,12 +40,17 @@ dependencies {
     
 	//** Groovy
 	groovy 'org.codehaus.groovy:groovy:1.8.6'
-  
+	compile 'org.codehaus.groovy:groovy:1.8.6'  
+	
   compile 'org.slf4j:slf4j-simple:1.6.4'
   compile 'org.codehaus.groovy.modules.http-builder:http-builder:0.5.2'
+  
   compile 'org.apache.ant:ant-jsch:1.8.3'
+  compile 'com.jcraft:jsch:0.1.42'
   
   testCompile 'junit:junit:4.10'
+  
+  sshAntTask 'org.apache.ant:ant-jsch:1.8.3', 'com.jcraft:jsch:0.1.42'
 }
 
 test {

@@ -8,6 +8,14 @@ import groovyx.net.http.*
 
 import java.util.concurrent.*
 
+/**
+ * Implements the CloudService interface to provide access to the Rackspace
+ * API
+ *
+ * @todo Helper methods for finding a particular Server by ID
+ * 
+ * @author clmarquart
+ */
 class Rackspace implements CloudService {
   String base
   String path

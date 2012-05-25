@@ -1,25 +1,36 @@
 apply {
   plugin 'groovy'
+  plugin 'war'
   plugin 'cloud'
 }
-
+configurations {
+  antSshTask {}
+  antDeployTask {}
+}
 repositories {
   mavenCentral()
 }
 
 dependencies {
   groovy 'org.codehaus.groovy:groovy:1.8.6'
+  compile 'org.codehaus.groovy:groovy:1.8.6'
   
   compile 'org.slf4j:slf4j-simple:1.6.4'
   compile 'org.codehaus.groovy.modules.http-builder:http-builder:0.5.2'
+  compile 'javax.servlet:servlet-api:2.5'
   
+  compile 'org.apache.ant:ant-jsch:1.8.3'
   testCompile 'junit:junit:4.10'
+  
+  antSshTask 'org.apache.ant:ant-jsch:1.8.3', 'com.jcraft:jsch:0.1.42'
+  antDeployTask 'org.apache.tomcat:tomcat-catalina-ant:7.0.27'
 }
 
 sourceSets {
   main {
-    groovy { srcDir 'src' }
-    resources { srcDir 'resources' }
+    groovy { srcDir 'src/main/groovy' }
+    resources { srcDir 'src/main/resources' }
+    
   }
   
   test {
@@ -40,7 +51,9 @@ test {
 }
 
 cloud {
+  serverID = "20695644"
   provider = "rackspace"
+  serverOS = "UBUNTU"
 }
 
 task wrapper(type: Wrapper) {
