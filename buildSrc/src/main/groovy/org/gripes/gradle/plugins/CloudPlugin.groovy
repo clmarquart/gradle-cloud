@@ -12,12 +12,13 @@ import org.gripes.gradle.plugins.puppet.Puppet
 import org.gripes.gradle.plugins.ssh.SSH
 
 class CloudPlugin implements Plugin<Project> {
+  private static Logger logger = LoggerFactory.getLogger(CloudPlugin.class)
   
   void apply(Project project) {
     project.extensions.create("cloud", CloudPluginExtension)
 
     def deployTask = project.task('deploy') << {
-      println "SSH: " + project.configurations.antSshTask.asPath
+      logger.debug "SSH: " + project.configurations.antSshTask.asPath
       ant.with {
         taskdef(
           name: 'sshexec', 
@@ -71,10 +72,10 @@ class CloudPlugin implements Plugin<Project> {
       
       // Make a server and save it too project.cloud.serverID
       if(!project.cloud.serverID) {
-        println "Service: ${service}"
-        println "Newest ubuntu: " + service.findNewestImage(project.cloud.serverOS)
+        logger.debug "Service: ${service}"
+        logger.debug "Newest matching OS: " + service.findNewestImage(project.cloud.serverOS)
         
-        service.create(project.cloud.server, { newServer ->
+        service.create(project.cloud.server , { newServer ->
           ipAddress = newServer.addresses.public[0]
           project.cloud.serverID = newServer.id
         })
@@ -84,9 +85,9 @@ class CloudPlugin implements Plugin<Project> {
         })
       } 
       
-      println "Use server: ${project.cloud.serverID}"
+      logger.debug "Use server: ${project.cloud.serverID}"
 
-      println "PUBLIC IP: " + ipAddress
+      logger.quiet "Server IP: " + ipAddress
         
       SSH ssh = new SSH(
         project: project,
@@ -126,7 +127,7 @@ class CloudPlugin implements Plugin<Project> {
         path: "/${project.archivesBaseName}",
         war: project.buildDir.canonicalPath+"/libs/${project.archivesBaseName}.war")
         
-      println "Application deployed to: http://${ipAddress}:8080/${project.archivesBaseName}"
+      logger.quiet "Application deployed to: http://${ipAddress}:8080/${project.archivesBaseName}"
     }
     deployTask.dependsOn<<project.war
   }
