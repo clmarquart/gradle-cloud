@@ -28,8 +28,8 @@ class TestRackspaceServerCreate extends BaseRackspaceTestCase {
       ],
       "personality" : [
         [
-            "path": "/root/.ssh/authorized_keys",
-            "contents": (new File("/Users/cody/.ssh/id_dsa.pub")).bytes.encodeBase64().toString()
+          "path": "/root/.ssh/authorized_keys",
+          "contents": (new File("/Users/cody/.ssh/id_dsa.pub")).bytes.encodeBase64().toString()
         ]
       ]
     ]
@@ -48,7 +48,7 @@ class TestRackspaceServerCreate extends BaseRackspaceTestCase {
    */
   @Ignore
   @Test void testCreateAServer() {
-    rackspace.create(testServer, { newServer ->              
+    rackspace.create(testServer, { newServer ->
       testInstallPuppetTomcat(newServer)
       deleteServerWithId(newServer.id)
     })

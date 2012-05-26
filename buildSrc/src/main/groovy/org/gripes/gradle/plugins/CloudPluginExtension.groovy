@@ -33,4 +33,23 @@ class CloudPluginExtension {
    */
   String path
     
+  /**
+   *  server = [
+   *    "server" : [
+   *      "name": "gradleCloud",
+   *      "flavorId": 1, 
+   *      "imageId": 119,
+   *      "metadata": [
+   *        "My Server Name": "Gradle Cloud Server"
+   *      ],
+   *      "personality" : [
+   *        [
+   *          "path": "/root/.ssh/authorized_keys",
+   *          "contents": (new File("/Users/cody/.ssh/id_dsa.pub")).bytes.encodeBase64().toString()
+   *        ]
+   *      ]
+   *    ]
+   *  ]
+   */
+  Map server
 }
